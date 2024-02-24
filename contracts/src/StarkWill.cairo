@@ -1,11 +1,11 @@
 use starknet::{ContractAddress, ClassHash};
 
-#[derive(Copy, Drop)]
+#[derive(Copy, Drop, Serialize, Deserialize)]
 struct Will {
         willCreator: ContractAddress,
         tokenAddress: ContractAddress,
         beneficiary: ContractAddress,
-        nonce: u256,
+        nonce: felt252,
     }
 
 #[starknet::interface]
@@ -16,9 +16,11 @@ trait IStarkWill<TContractState> {
 
 #[starknet::contract]
 mod StarkWill{
-    use contracts::StarkWill::Will;
+    use core::box::BoxTrait;
+use contracts::StarkWill::Will;
     use starknet::{ContractAddress, ClassHash};
-
+    use starknet::get_caller_address;
+    use starknet::get_tx_info;
 
     #[storage]
     struct Storage {
@@ -28,12 +30,12 @@ mod StarkWill{
     #[abi(embed_v0)]
     impl StarkWill of super::IStarkWill<ContractState> {
         fn createWill(ref self: ContractState, tokenAddress: ContractAddress, recipient: ContractAddress){
-            let will = Will {willCreator: tokenAddress, tokenAddress: tokenAddress, beneficiary: recipient, nonce: 1};
+            let will = Will {willCreator: get_caller_address(), tokenAddress: tokenAddress, beneficiary: recipient, nonce: get_tx_info().unbox().nonce};
             self.wills.write(tokenAddress, will)
         }
 
         fn getWill(self: @ContractState, willCreator: ContractAddress){
-            self.wills.read(willCreator);
+           self.wills.read(willCreator);
         }
     }
 }
