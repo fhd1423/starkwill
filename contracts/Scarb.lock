@@ -4,3 +4,11 @@ version = 1
 [[package]]
 name = "contracts"
 version = "0.1.0"
+dependencies = [
+ "openzeppelin",
+]
+
+[[package]]
+name = "openzeppelin"
+version = "0.7.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.7.0#bb8c56817577b66cea9f18a241fe59726db42dd5"
