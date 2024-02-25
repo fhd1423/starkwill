@@ -1,7 +1,7 @@
 use starknet::{ContractAddress, ClassHash};
 
 
-#[derive(Copy, Drop, Serde)]
+#[derive(Copy, Drop, Serde, starknet::Store)]
 struct Will {
         willCreator: ContractAddress,
         tokenAddress: ContractAddress,
@@ -19,7 +19,6 @@ trait IStarkWill<TContractState> {
 
 #[starknet::contract]
 mod StarkWill{
-    use core::box::BoxTrait;
     use contracts::StarkWill::Will;
     use starknet::{ContractAddress, ClassHash};
     use starknet::get_caller_address;
@@ -52,7 +51,7 @@ mod StarkWill{
             let will = self.getWill(willCreator);
             let token = (IERC20Dispatcher { contract_address: will.tokenAddress });
             if (get_block_info().unbox().block_timestamp > will.timestamp){
-                // TODO: integrate storage proofs here
+                // integrate storage proofs here
                 token.transfer_from(willCreator, will.beneficiary, token.balance_of(willCreator));
             }
         }
