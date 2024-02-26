@@ -1,0 +1,82 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.img-large {
+  max-width: 100%;
+  height: auto;
+  max-height: 500px;
+}
+/* Add this to your main CSS file */
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent scrolling */
+}
+
+.container, .row {
+  height: 50vh; /* Adjust this value based on your layout */
+  max-height: 50vh; /* Prevents content from exceeding half the viewport height */
+}
+
+/* If you have a navbar or header, account for its height as well */
+.navbar {
+  height: 10vh; /* Example height for a navbar */
+}
+
+/* Ensure content does not exceed its container */
+.content {
+  max-height: 100%;
+  overflow: hidden; /* Hide content that overflows its container */
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevents scrolling */
+  height: 100vh; /* Sets the total height to the viewport height */
+  display: flex;
+  flex-direction: column; /* Stacks children vertically */
+}
+
+.navbar {
+  height: 10vh; /* Adjust if your navbar is taller or shorter */
+}
+
+/* Assuming that .container is a direct child of body and contains all page content */
+.container {
+  flex: 1; /* Takes up all available space */
+  overflow: hidden; /* Prevents internal scrolling */
+  display: flex; /* Enables flexbox for direct children, e.g., .row */
+  flex-direction: column; /* Stacks children vertically */
+}
+
+.row {
+  flex: 1; /* Distributes space equally among .row elements */
+  max-height: calc((100vh - 10vh) / 3); /* Adjust based on the number of .row elements */
+  overflow: hidden; /* Prevents internal scrolling */
+}
+
+/* For image sizing */
+.img-large {
+  max-width: 100%;
+  height: auto;
+  max-height: 100%; /* Ensures the image does not exceed its container */
+}
+
+/* If you're using additional padding or margins, you may need to adjust them */
+.content, .feature-box, .other-class {
+  padding: 0; /* Removes padding */
+  margin: 0; /* Removes margin */
+  /* Other styles */
+}
