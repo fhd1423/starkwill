@@ -9,12 +9,6 @@ pub struct BetPool {
         pub betCount: u256,
     }
 
-#[derive(Copy, Drop, Debug, Serde, PartialEq, starknet::Store)]
-pub struct BetsPlaced {
-    pub bettor: ContractAddress,
-    pub betAmount: u256,
-}
-
 #[starknet::interface]
 pub trait IStarkBet<TContractState> {
     fn createBettingPool(ref self: TContractState, tokenAddress: ContractAddress, blockNumber: u256);
@@ -60,41 +54,43 @@ mod StarkBet{
 
             let mut currentBettingPool = self.getBettingPool(blockNumber);
 
-            //retrieve current bet index
+            // retrieve current bet index
             let currentIndex = currentBettingPool.betCount;
 
-            //map current bet index to new user
+            // map current bet index to new user
             self.userToIndex.write((blockNumber, caller), currentIndex);
             self.IndexToUser.write((currentIndex, blockNumber), caller);
 
             // add bet to betsPlaced
             self.betsPlaced.write((blockNumber, currentIndex), target);
-
             
-            //increment betting pool user count
+            // increment betting pool user count
             currentBettingPool.betCount = currentIndex +1;
+            self.betPools.write(blockNumber, currentBettingPool);
             
-            token.approve(contract_address, amount);
+            // send money to contract
+            // token.approve(contract_address, amount);
             token.transfer_from(caller, contract_address, amount);
         }
 
         fn disperseFunds(self: @ContractState, blockNumber: u256){
             let bettingPool = self.getBettingPool(blockNumber);
             let totalBetsForPool = bettingPool.betCount;
-            let token = (IERC20Dispatcher { contract_address:  bettingPool.tokenAddress });
+            let token = (IERC20Dispatcher { contract_address: bettingPool.tokenAddress });
 
             let mut userIndex: u256 = 0;
             let mut max: u256 = 0;
-            let mut winnerAddress : ContractAddress = self.IndexToUser.read((userIndex, blockNumber));
+            let mut winnerAddress: ContractAddress = self.IndexToUser.read((userIndex, blockNumber));
 
             loop {
-                if userIndex > totalBetsForPool {
+                if userIndex >= totalBetsForPool {
                 break;
             }
                 if(self.betsPlaced.read((blockNumber, userIndex)) > max){
-                max = self.betsPlaced.read((blockNumber, userIndex));
-                winnerAddress = self.IndexToUser.read((userIndex, blockNumber));
+                    max = self.betsPlaced.read((blockNumber, userIndex));
+                    winnerAddress = self.IndexToUser.read((userIndex, blockNumber));
                 }
+                userIndex+=1;
             };
 
             token.transfer(winnerAddress, bettingPool.winningPot);
