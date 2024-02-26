@@ -1,14 +1,22 @@
-type Peaks = Span<felt252>;
+pub type Peaks = Span<felt252>;
 
-type Proof = Span<felt252>;
+pub type Proof = Span<felt252>;
 
-type Words64 = Span<u64>;
+pub type Words64 = Span<u64>;
 
 #[derive(Drop, Serde)]
 struct ProofElement {
     index: usize,
     value: u256,
     proof: Proof,
+}
+
+#[derive(Drop, Serde)]
+enum AccountField {
+    StorageHash: (),
+    CodeHash: (),
+    Balance: (),
+    Nonce: ()
 }
 
 #[derive(Drop, Serde)]
@@ -32,8 +40,13 @@ pub trait ITimestampRemappers<TContractState> {
 }
 
 #[starknet::interface]
-pub trait IEVMFactsRegistry<TContractState> {
-    fn get_storage(
-        self: @TContractState, block: u256, account: felt252, slot: u256, mpt_proof: Span<Words64>
-    ) -> u256;
+pub trait IBlockHeaders<TContractState> {
+    fn verify_mmr_inclusion(
+        self: @TContractState,
+        index: usize,
+        poseidon_blockhash: felt252,
+        peaks: Peaks,
+        proof: Proof,
+        mmr_id: usize,
+    ) -> bool;
 }
