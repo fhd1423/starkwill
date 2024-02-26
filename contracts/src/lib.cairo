@@ -1,25 +1,32 @@
 use starknet::{ContractAddress, ClassHash};
 
 
-#[derive(Copy, Drop, Serde, starknet::Store)]
-struct Will {
-        willCreator: ContractAddress,
-        tokenAddress: ContractAddress,
-        beneficiary: ContractAddress,
-        nonce: felt252,
-        timestamp: u64,
+#[derive(Copy, Drop, Debug, Serde, PartialEq, starknet::Store)]
+pub struct BetPool {
+        pub tokenAddress: ContractAddress,
+        pub blockNumber: u256,
+        pub winningPot: u256,
+        pub betCount: u256,
     }
 
-#[starknet::interface]
-pub trait IStarkWill<TContractState> {
-    fn createWill(ref self: TContractState, tokenAddress: ContractAddress, recipient: ContractAddress, duration: u64);
-    fn getWill(self: @TContractState, willCreator: ContractAddress) -> Will;
-    fn disperseFunds(self: @TContractState, willCreator: ContractAddress);
+#[derive(Copy, Drop, Debug, Serde, PartialEq, starknet::Store)]
+pub struct BetsPlaced {
+    pub bettor: ContractAddress,
+    pub betAmount: u256,
 }
 
+#[starknet::interface]
+pub trait IStarkBet<TContractState> {
+    fn createBettingPool(ref self: TContractState, tokenAddress: ContractAddress, blockNumber: u256);
+    fn placeBet(ref self: TContractState, tokenAddress: ContractAddress, blockNumber: u256, amount: u256, target: u256);
+    fn getBettingPool(self: @TContractState, blockNumber: u256) -> BetPool;
+    fn disperseFunds(self: @TContractState, blockNumber: u256);
+}
+
+
 #[starknet::contract]
-mod StarkWill{
-    use foundrycontracts::Will;
+mod StarkBet{
+    use foundrycontracts::BetPool;
     use starknet::{ContractAddress, ClassHash};
     use starknet::get_caller_address;
     use starknet::get_tx_info;
@@ -29,31 +36,68 @@ mod StarkWill{
 
     #[storage]
     struct Storage {
-     wills: LegacyMap::<ContractAddress, Will>
+     betPools: LegacyMap::<u256, BetPool>, // block => bet
+     betsPlaced: LegacyMap::<(u256, u256), u256>, // block + user index => bet amount
+     userToIndex: LegacyMap::<(u256, ContractAddress), u256>, // block + user address => user index
+     IndexToUser: LegacyMap::<(u256, u256), ContractAddress>, // user index + block number =>  user address
     }
 
     #[abi(embed_v0)]
-    impl StarkWill of super::IStarkWill<ContractState> {
-        fn createWill(ref self: ContractState, tokenAddress: ContractAddress, recipient: ContractAddress, duration: u64){
+    impl StarkBet of super::IStarkBet<ContractState> {
+        fn createBettingPool(ref self: ContractState, tokenAddress: ContractAddress, blockNumber: u256){
+            let betPool = BetPool {tokenAddress: tokenAddress, blockNumber: blockNumber, winningPot: 0, betCount: 0 };
+            self.betPools.write(blockNumber, betPool);
+        }
+
+        fn getBettingPool(self: @ContractState, blockNumber: u256) -> BetPool{
+           self.betPools.read(blockNumber)
+        }
+
+        fn placeBet(ref self: ContractState, tokenAddress: ContractAddress, blockNumber: u256, amount: u256, target: u256){
             let token = (IERC20Dispatcher { contract_address: tokenAddress });
             let caller = get_caller_address();
+            let contract_address = get_execution_info().unbox().contract_address;
 
-            let will = Will {willCreator: caller, tokenAddress: tokenAddress, beneficiary: recipient, nonce: get_tx_info().unbox().nonce, timestamp: get_block_info().unbox().block_timestamp + duration};
-            token.approve(get_execution_info().unbox().contract_address, token.balance_of(caller));
-            self.wills.write(tokenAddress, will);
+            let mut currentBettingPool = self.getBettingPool(blockNumber);
+
+            //retrieve current bet index
+            let currentIndex = currentBettingPool.betCount;
+
+            //map current bet index to new user
+            self.userToIndex.write((blockNumber, caller), currentIndex);
+            self.IndexToUser.write((currentIndex, blockNumber), caller);
+
+            // add bet to betsPlaced
+            self.betsPlaced.write((blockNumber, currentIndex), target);
+
+            
+            //increment betting pool user count
+            currentBettingPool.betCount = currentIndex +1;
+            
+            token.approve(contract_address, amount);
+            token.transfer_from(caller, contract_address, amount);
         }
 
-        fn getWill(self: @ContractState, willCreator: ContractAddress) -> Will{
-           self.wills.read(willCreator)
-        }
+        fn disperseFunds(self: @ContractState, blockNumber: u256){
+            let bettingPool = self.getBettingPool(blockNumber);
+            let totalBetsForPool = bettingPool.betCount;
+            let token = (IERC20Dispatcher { contract_address:  bettingPool.tokenAddress });
 
-        fn disperseFunds(self: @ContractState, willCreator: ContractAddress) {
-            let will = self.getWill(willCreator);
-            let token = (IERC20Dispatcher { contract_address: will.tokenAddress });
-            if (get_block_info().unbox().block_timestamp > will.timestamp){
-                // integrate storage proofs here
-                token.transfer_from(willCreator, will.beneficiary, token.balance_of(willCreator));
+            let mut userIndex: u256 = 0;
+            let mut max: u256 = 0;
+            let mut winnerAddress : ContractAddress = self.IndexToUser.read((userIndex, blockNumber));
+
+            loop {
+                if userIndex > totalBetsForPool {
+                break;
             }
+                if(self.betsPlaced.read((blockNumber, userIndex)) > max){
+                max = self.betsPlaced.read((blockNumber, userIndex));
+                winnerAddress = self.IndexToUser.read((userIndex, blockNumber));
+                }
+            };
+
+            token.transfer(winnerAddress, bettingPool.winningPot);
         }
     }
 }
