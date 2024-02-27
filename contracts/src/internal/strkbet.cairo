@@ -4,18 +4,18 @@ use foundrycontracts::internal::herodotus::{ IBlockHeadersDispatcher, Peaks, Pro
 #[derive(Copy, Drop, Debug, Serde, PartialEq, starknet::Store)]
 pub struct BetPool {
         pub tokenAddress: ContractAddress,
-        pub blockNumber: u256,
+        pub blockNumber: u64,
         pub winningPot: u256,
-        pub betCount: u256,
+        pub betCount: u64,
     }
 
 #[starknet::interface]
 pub trait IStarkBet<TContractState> {
-    fn createBettingPool(ref self: TContractState, tokenAddress: ContractAddress, blockNumber: u256);
-    fn placeBet(ref self: TContractState, tokenAddress: ContractAddress, blockNumber: u256, amount: u256, target: u64);
-    fn getBettingPool(self: @TContractState, blockNumber: u256) -> BetPool;
+    fn createBettingPool(ref self: TContractState, tokenAddress: ContractAddress, blockNumber: u64);
+    fn placeBet(ref self: TContractState, tokenAddress: ContractAddress, blockNumber: u64, amount: u256, target: u64);
+    fn getBettingPool(self: @TContractState, blockNumber: u64) -> BetPool;
     fn set_headerstore_address(ref self: TContractState, address: ContractAddress);
-    fn disperseFunds(self: @TContractState, blockNumber: u256, index: usize,
+    fn disperseFunds(self: @TContractState, blockNumber: u64, index: usize,
         block_header: Words64,
         peaks: Peaks,
         proof: Proof,
@@ -39,10 +39,10 @@ mod StarkBet{
 
     #[storage]
     struct Storage {
-     betPools: LegacyMap::<u256, BetPool>, // block => bet
-     betsPlaced: LegacyMap::<(u256, u256), u64>, // block + user index => bet amount
-     userToIndex: LegacyMap::<(u256, ContractAddress), u256>, // block + user address => user index
-     IndexToUser: LegacyMap::<(u256, u256), ContractAddress>, // user index + block number =>  user address
+     betPools: LegacyMap::<u64, BetPool>, // block => bet
+     betsPlaced: LegacyMap::<(u64, u64), u64>, // block + user index => bet amount
+     userToIndex: LegacyMap::<(u64, ContractAddress), u64>, // block + user address => user index
+     IndexToUser: LegacyMap::<(u64, u64), ContractAddress>, // user index + block number =>  user address
      headerstore_address: ContractAddress,
     }
 
@@ -52,16 +52,16 @@ mod StarkBet{
         fn set_headerstore_address(ref self: ContractState, address: ContractAddress){
             self.headerstore_address.write(address);
         }
-        fn createBettingPool(ref self: ContractState, tokenAddress: ContractAddress, blockNumber: u256){
+        fn createBettingPool(ref self: ContractState, tokenAddress: ContractAddress, blockNumber: u64){
             let betPool = BetPool {tokenAddress: tokenAddress, blockNumber: blockNumber, winningPot: 0, betCount: 0 };
             self.betPools.write(blockNumber, betPool);
         }
 
-        fn getBettingPool(self: @ContractState, blockNumber: u256) -> BetPool{
+        fn getBettingPool(self: @ContractState, blockNumber: u64) -> BetPool{
            self.betPools.read(blockNumber)
         }
 
-        fn placeBet(ref self: ContractState, tokenAddress: ContractAddress, blockNumber: u256, amount: u256, target: u64){
+        fn placeBet(ref self: ContractState, tokenAddress: ContractAddress, blockNumber: u64, amount: u256, target: u64){
             let token = (IERC20Dispatcher { contract_address: tokenAddress });
             let caller = get_caller_address();
             let contract_address = get_execution_info().unbox().contract_address;
@@ -87,17 +87,12 @@ mod StarkBet{
             token.transfer_from(caller, contract_address, amount);
         }
 
-        fn disperseFunds(self: @ContractState, blockNumber: u256,
-        index: usize,
-        block_header: Words64,
-        peaks: Peaks,
-        proof: Proof,
-        mmr_id: usize){
+        fn disperseFunds(self: @ContractState, blockNumber: u64, index: usize, block_header: Words64, peaks: Peaks, proof: Proof, mmr_id: usize){
             let bettingPool = self.getBettingPool(blockNumber);
             let totalBetsForPool = bettingPool.betCount;
             let token = (IERC20Dispatcher { contract_address: bettingPool.tokenAddress });
 
-            let mut userIndex: u256 = 0;
+            let mut userIndex: u64 = 0;
             let mut winnerAddress: ContractAddress = self.IndexToUser.read((userIndex, blockNumber));
 
             let poseidon_hash: felt252 = hash_words64(block_header);
@@ -115,7 +110,7 @@ mod StarkBet{
             )
                 .unwrap();
 
-            let ((base_gasfee_le, base_gasfee_le_len), (base_gasfeee, base_gasfeee_len)) =
+            let ((base_gasfee_le, base_gasfee_le_len), (_base_gasfeee, _base_gasfeee_len)) =
                 match decoded_rlp {
                 RLPItem::Bytes(_) => panic!("Invalid header rlp"),
                 RLPItem::List(l) => {
