@@ -1,18 +1,13 @@
-import React, { useState, useContext, useEffect } from 'react';
-import Particle from '../components/Particle';
-import SliderMainParticle from '../components/SliderMainParticle';
+import React, { useState, useContext, useEffect } from "react";
+import Particle from "../components/Particle";
+import SliderMainParticle from "../components/SliderMainParticle";
 
-import { createGlobalStyle } from 'styled-components';
-import Footer from '../components/Footer';
-import FeatureBox from '../components/FeatureBox';
+import { createGlobalStyle } from "styled-components";
+import Footer from "../components/Footer";
+import FeatureBox from "../components/FeatureBox";
 
 import { useWeb3React } from "@web3-react/core";
-import {
-  useStarknet,
-  InjectedConnector
-} from '@starknet-react/core'
-
-
+import { useStarknet, InjectedConnector } from "@starknet-react/core";
 
 const GlobalStyles = createGlobalStyle`
   header#myHeader .logo .d-block{
@@ -114,20 +109,23 @@ const GlobalStyles = createGlobalStyle`
 `;
 
 const Landing = () => {
-  const { account, connect } = useStarknet()
+  const { account, connect } = useStarknet();
 
   return (
     <div>
       <GlobalStyles />
-      <section className="jumbotron no-bg" style={{ backgroundImage: `url(${'./img/background/8.jpg'})` }}>
+      <section
+        className="jumbotron no-bg"
+        style={{ backgroundImage: `url(${"./img/background/8.jpg"})` }}
+      >
         <Particle />
         <SliderMainParticle />
       </section>
-      
-      <section className='container no-top'>
-        <div className='row'>
+
+      <section className="container no-top">
+        <div className="row">
           <div className="spacer-double"></div>
-          <div className='col-lg-12 mb-3'>
+          <div className="col-lg-12 mb-3">
             <h2>How It Works:</h2>
           </div>
           <FeatureBox />
@@ -136,6 +134,6 @@ const Landing = () => {
 
       <Footer />
     </div>
-  )
+  );
 };
 export default Landing;
