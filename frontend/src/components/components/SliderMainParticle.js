@@ -30,11 +30,11 @@ const sliderMainParticle = () => (
         </Reveal>
         <div className="spacer-10"></div>
         <Reveal className='onStep' keyframes={fadeInUp} delay={800} duration={900} triggerOnce>
-          <span onClick={()=> window.open("#", "_self")} 
-                style={{ backgroundColor: 'orange', color: 'white', padding: '15px 30px', fontSize: '24px', fontWeight: 'bold', borderRadius: '5px', cursor: 'pointer' }}>
-            Start Betting
-          </span>
-        </Reveal>
+  <span onClick={() => window.open("https://joshfernando.github.io/bettingpagee/", "_self")} 
+        style={{ backgroundColor: 'orange', color: 'white', padding: '15px 30px', fontSize: '24px', fontWeight: 'bold', borderRadius: '5px', cursor: 'pointer' }}>
+    Start Betting
+  </span>
+</Reveal>
       </div>
       <div className="col-md-6 xs-hide">
         {/* Insert an appropriate image for gas fee betting */}
