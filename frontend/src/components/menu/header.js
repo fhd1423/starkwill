@@ -31,10 +31,6 @@ const NavLink = (props) => (
 
 const Header = function () {
   const { account, connect } = useStarknet();
-  const [openMenu, setOpenMenu] = React.useState(false);
-  const [openMenu1, setOpenMenu1] = React.useState(false);
-  const [openMenu2, setOpenMenu2] = React.useState(false);
-  const [openMenu3, setOpenMenu3] = React.useState(false);
   const { setGlobalAccount } = useContext(AccountContext);
 
   useEffect(() => {
@@ -50,43 +46,6 @@ const Header = function () {
     //   argentX.setGlobalAccount('')
   };
 
-  const handleBtnClick = () => {
-    setOpenMenu(!openMenu);
-  };
-  const handleBtnClick1 = () => {
-    setOpenMenu1(!openMenu1);
-  };
-  const handleBtnClick2 = () => {
-    setOpenMenu2(!openMenu2);
-  };
-  const handleBtnClick3 = () => {
-    setOpenMenu3(!openMenu3);
-  };
-  const closeMenu = () => {
-    setOpenMenu(false);
-  };
-  const closeMenu1 = () => {
-    setOpenMenu1(false);
-  };
-  const closeMenu2 = () => {
-    setOpenMenu2(false);
-  };
-  const closeMenu3 = () => {
-    setOpenMenu3(false);
-  };
-  const ref = useOnclickOutside(() => {
-    closeMenu();
-  });
-  const ref1 = useOnclickOutside(() => {
-    closeMenu1();
-  });
-  const ref2 = useOnclickOutside(() => {
-    closeMenu2();
-  });
-  const ref3 = useOnclickOutside(() => {
-    closeMenu3();
-  });
-
   const [showmenu, btn_icon] = useState(false);
   useEffect(() => {
     const header = document.getElementById("myHeader");
@@ -100,9 +59,6 @@ const Header = function () {
       } else {
         header.classList.remove("sticky");
         totop.classList.remove("show");
-      }
-      if (window.pageYOffset > sticky) {
-        closeMenu();
       }
     });
     return () => {
