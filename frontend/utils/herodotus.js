@@ -40,7 +40,7 @@ const submitBatchQuery = async (block) => {
 
 const submitProof = async (block) => {
   fetch(
-    `https://ds-indexer.api.herodotus.cloud/mmr-inclusion-proof?deployed_on_chain=SN_SEPOLIA&accumulates_chain=11155111&block_numbers=${block}&from_one_tree=true&hashing_function=poseidon&whole_tree=false&contract_type=Accumulator`,
+    `https://rs-indexer.api.herodotus.cloud/accumulators/mmr-meta-and-proof?deployed_on_chain=11155111&accumulates_chain=11155111&block_numbers=${block}&hashing_function=keccak&contract_type=AGGREGATOR`,
     {
       method: "GET", // The method is GET
       headers: {
@@ -55,7 +55,22 @@ const submitProof = async (block) => {
       return response.json(); // Parse the JSON of the response
     })
     .then((data) => {
-      console.log(data); // Log the data
+      const block_number = data.data[0].proofs[0].block_number;
+      const index = data.data[0].proofs[0].element_index;
+      const block_header = data.data[0].proofs[0].rlp_block_header;
+      const peaks = data.data[0].meta.mmr_peaks;
+      const proof = 0;
+      const mmr_id = data.data[0].meta.mmr_id;
+
+      console.log("block number:", block_number);
+      console.log("index:", index);
+      console.log("block header:", block_header);
+      console.log("peaks:", peaks);
+      console.log("proof:", proof);
+      console.log("mmr id:", mmr_id);
+
+      //console.log("meta:", data.data[0].meta);
+      console.log("proofs:", data.data[0].proofs);
     })
     .catch((error) => {
       console.error(
@@ -72,12 +87,12 @@ function callUntilTrue(blockNumber) {
         console.log("Success:", result);
       } else {
         console.log("Retrying...");
-        setTimeout(() => callUntilTrue(blockNumber), 200000); // Wait for 2 seconds before retrying
+        setTimeout(() => callUntilTrue(blockNumber), 20000); // Wait for 2 seconds before retrying
       }
     })
     .catch((error) => {
       console.error("Error in submitProof:", error);
-      setTimeout(() => callUntilTrue(blockNumber), 200000); // Wait and retry upon error as well
+      setTimeout(() => callUntilTrue(blockNumber), 20000); // Wait and retry upon error as well
     });
 }
 
