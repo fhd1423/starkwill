@@ -5,7 +5,7 @@ import { keyframes } from "@emotion/react";
 const fadeInUp = keyframes`
   from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -17,14 +17,14 @@ const sliderMainParticle = () => (
   <div className="container">
     <div className="row align-items-center">
       <div className="col-md-6">
-        <h6 style={{ color: 'orange', fontSize: '26px', fontWeight: 'bold' }}>
+        <h6 style={{ color: 'orange', fontSize: '36px', fontWeight: 'bold' }}>
           <span className="text-uppercase">Introducing</span>
         </h6>
         <Reveal className='onStep' keyframes={fadeInUp} delay={300} duration={900} triggerOnce>
-          <h1 style={{ color: 'white', fontSize: '56px', fontWeight: 'bold' }}>starkBET</h1>
+          <h1 style={{ color: 'white', fontSize: '66px', fontWeight: 'bold' }}>StarkBET</h1>
         </Reveal>
         <Reveal className='onStep' keyframes={fadeInUp} delay={600} duration={900} triggerOnce>
-          <p style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
+          <p style={{ color: 'white', fontSize: '26px', fontWeight: 'bold' }}>
             Dive into the future of betting with starkBET, where you predict and bet on Stark gas fees. Connect your wallet, set your predictions, and place your bets with precision.
           </p>
         </Reveal>
@@ -37,7 +37,7 @@ const sliderMainParticle = () => (
 </Reveal>
       </div>
       <div className="col-md-6 xs-hide">
-        {/* Insert an appropriate image for gas fee betting */}
+      <img src="./img/misc/women-with-vr.png" className="img-fluid" alt="Women with VR"/>
       </div>
     </div>
   </div>
